@@ -61,7 +61,7 @@ window.addEventListener('DOMContentLoaded', function(){
 
         // Ground (using a ball not a plane)
         var ground = BABYLON.Mesh.CreateGroundFromHeightMap("ground", "groundHeightmap.jpg", 2000, 2000, 500, 0, 20, scene, false, () => {
-            ground.physicsImpostor = new BABYLON.PhysicsImpostor(ground, BABYLON.PhysicsImpostor.HeightmapImpostor, { mass: 0 }, scene);
+            ground.physicsImpostor = new BABYLON.PhysicsImpostor(ground, BABYLON.PhysicsImpostor.HeightmapImpostor, { mass: 0, friction: 5.0 }, scene);
         });
 
         var groundMat = new BABYLON.StandardMaterial("groundMat", scene);
@@ -89,7 +89,7 @@ window.addEventListener('DOMContentLoaded', function(){
         scene.enablePhysics(null, new BABYLON.CannonJSPlugin());
 
         // Add Imposters
-        ball.physicsImpostor = new BABYLON.PhysicsImpostor(ball, BABYLON.PhysicsImpostor.BoxImpostor, { mass: 2, friction: 0.0, restitution: 0.3 }, scene);
+        ball.physicsImpostor = new BABYLON.PhysicsImpostor(ball, BABYLON.PhysicsImpostor.BoxImpostor, { mass: 2, friction: 5.0, restitution: 0.3 }, scene);
 
         //Impulse Settings
         var impulseDirection = new BABYLON.Vector3(0, 1, 0);
@@ -97,6 +97,12 @@ window.addEventListener('DOMContentLoaded', function(){
         var contactLocalRefPoint = BABYLON.Vector3.Zero();
 
         var Pulse = function() {
+            // Aim towards camera direction
+            var cameraDirection = camera.getFrontPosition(1).subtract(camera.position);
+            impulseDirection.x = cameraDirection.x;
+            impulseDirection.z = cameraDirection.z;
+
+            // Apply impulse
             ball.physicsImpostor.applyImpulse(impulseDirection.scale(impulseMagnitude), ball.getAbsolutePosition().add(contactLocalRefPoint));
         }
         
@@ -161,13 +167,9 @@ window.addEventListener('DOMContentLoaded', function(){
          
         advancedTexture.addControl(selectBox);
 
-        var impulseMGroup = new BABYLON.GUI.SliderGroup("Strength", "S");
-        impulseMGroup.addSlider("Value", magnitude, "units", 0, 100, 50, displayMValue);
-        
-        var impulseDGroup = new BABYLON.GUI.SliderGroup("Impulse Direction", "S");
-        impulseDGroup.addSlider("X", changeX, "units", -1, 1, 0, displayDValue);
-        impulseDGroup.addSlider("Y", changeY, "units", -1, 1, 1, displayDValue);
-        impulseDGroup.addSlider("Z", changeZ, "units", -1, 1, 0, displayDValue);
+        var impulseMGroup = new BABYLON.GUI.SliderGroup("Control", "S");
+        impulseMGroup.addSlider("Power", magnitude, "units", 0, 100, 50, displayMValue);
+        impulseMGroup.addSlider("Loft", changeY, "units", 0, 1, 1, displayDValue);
 
         var contactGroup = new BABYLON.GUI.SliderGroup("Contact Position", "S");
         contactGroup.addSlider("X", contactX, "units", -2, 2, 0, displayDValue);
@@ -175,7 +177,6 @@ window.addEventListener('DOMContentLoaded', function(){
         contactGroup.addSlider("Z", contactZ, "units", -2, 2, 0, displayDValue); 
 
         selectBox.addGroup(impulseMGroup);
-        selectBox.addGroup(impulseDGroup);
         selectBox.addGroup(contactGroup);
 
         var button = BABYLON.GUI.Button.CreateSimpleButton("but", "Swing");
@@ -200,8 +201,8 @@ window.addEventListener('DOMContentLoaded', function(){
         advancedTexture.addControl(selectFrictionBox);
 
         var frictionGroup = new BABYLON.GUI.SliderGroup("Friction Values", "S");
-        frictionGroup.addSlider("Box", frictionBox, "units", 0, 10, 10, displayFValue);
-        frictionGroup.addSlider("Ground", frictionGround, "units", 0, 10, 10, displayFValue);
+        frictionGroup.addSlider("Box", frictionBox, "units", 0, 10, 5, displayFValue);
+        frictionGroup.addSlider("Ground", frictionGround, "units", 0, 10, 5, displayFValue);
 
         selectFrictionBox.addGroup(frictionGroup);
 
