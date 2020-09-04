@@ -9,7 +9,26 @@ window.addEventListener('DOMContentLoaded', function(){
         var scene = new BABYLON.Scene(engine);
         scene.clearColor = BABYLON.Color3.Purple();
 
-        var camera = new BABYLON.ArcRotateCamera("Camera", 3 * Math.PI / 2, Math.PI / 2, 50, BABYLON.Vector3.Zero(), scene);
+        // var camera = new BABYLON.ArcRotateCamera("Camera", 3 * Math.PI / 2, Math.PI / 2, 50, BABYLON.Vector3.Zero(), scene);
+        // var camera = new BABYLON.FollowCamera("camera", BABYLON.Vector3(10, 10, 10), scene);
+
+        // This creates and initially positions a follow camera     
+        var camera = new BABYLON.FollowCamera("FollowCam", new BABYLON.Vector3(0, 10, 10), scene);
+        
+        //The goal distance of camera from target
+        camera.radius = 30;
+        
+        // The goal height of camera above local origin (centre) of target
+        camera.heightOffset = 5;
+        
+        // The goal rotation of camera around local origin (centre) of target in x y plane
+        camera.rotationOffset = 0;
+        
+        //Acceleration of camera in moving from current to goal position
+        camera.cameraAcceleration = 0.005
+        
+        //The speed at which acceleration is halted 
+        camera.maxCameraSpeed = 10
         camera.attachControl(canvas, true);
 
         var light = new BABYLON.DirectionalLight("dir02", new BABYLON.Vector3(0.2, -1, 0), scene);
@@ -19,24 +38,38 @@ window.addEventListener('DOMContentLoaded', function(){
         var shadowGenerator = new BABYLON.ShadowGenerator(2048, light);
 
         // Box
-        var box = BABYLON.MeshBuilder.CreateBox("Box", {size:4}, scene);
-        box.position = new BABYLON.Vector3(-2, 4, 0);
-        var materialWood = new BABYLON.StandardMaterial("wood", scene);
-        materialWood.diffuseTexture = new BABYLON.Texture("textures/crate.png", scene);
-        materialWood.emissiveColor = new BABYLON.Color3(0.5, 0.5, 0.5);
-        box.material = materialWood;
+        // var ball = BABYLON.MeshBuilder.CreateBox("Box", {size:4}, scene);
+        var ball = BABYLON.Mesh.CreateSphere('sphere1', 16, 1, scene);
+        ball.position = new BABYLON.Vector3(-2, 4, 0);
+        // var materialWood = new BABYLON.StandardMaterial("wood", scene);
+        // materialWood.diffuseTexture = new BABYLON.Texture("textures/crate.png", scene);
+        // materialWood.emissiveColor = new BABYLON.Color3(0.5, 0.5, 0.5);
+        // ball.material = materialWood;
 
-        shadowGenerator.addShadowCaster(box);
+        camera.lockedTarget = ball; // target any mesh or object with a "position" Vector3
+        console.log(camera.lockedTarget)
+        scene.activeCamera = camera;
+
+        shadowGenerator.addShadowCaster(ball);
 
 
-        // Ground (using a box not a plane)
-        var ground = BABYLON.MeshBuilder.CreateBox("Ground", {width: 100, height: 1, depth: 100}, scene);
+        // Ground (using a ball not a plane)
+        var ground = BABYLON.MeshBuilder.CreateBox("Ground", {width: 1000, height: 1, depth: 1000}, scene);
         ground.position.y = -5.0;
 
         var groundMat = new BABYLON.StandardMaterial("groundMat", scene);
         groundMat.diffuseColor = new BABYLON.Color3(0.5, 0.5, 0.5);
         groundMat.emissiveColor = new BABYLON.Color3(0.2, 0.2, 0.2);
         groundMat.backFaceCulling = false;
+        // groundMat.diffuseTexture = new BABYLON.Texture("https://www.astrobio.net/wp-content/uploads/2018/09/Mars_Express_view_of_Cerberus_Fossae_highlight_mob.jpg", scene);
+        // groundMat.specularTexture = new BABYLON.Texture("https://www.astrobio.net/wp-content/uploads/2018/09/Mars_Express_view_of_Cerberus_Fossae_highlight_mob.jpg", scene);
+        // groundMat.emissiveTexture = new BABYLON.Texture("https://www.astrobio.net/wp-content/uploads/2018/09/Mars_Express_view_of_Cerberus_Fossae_highlight_mob.jpg", scene);
+        // groundMat.ambientTexture = new BABYLON.Texture("https://www.astrobio.net/wp-content/uploads/2018/09/Mars_Express_view_of_Cerberus_Fossae_highlight_mob.jpg", scene);
+        // groundMat.diffuseColor = new BABYLON.Color3(1, 0, 1);
+        // groundMat.specularColor = new BABYLON.Color3(0.5, 0.6, 0.87);
+        // groundMat.emissiveColor = new BABYLON.Color3(1, 1, 1);
+        // groundMat.ambientColor = new BABYLON.Color3(0.23, 0.98, 0.53);
+
         ground.material = groundMat;
         ground.receiveShadows = true;
 
@@ -46,7 +79,7 @@ window.addEventListener('DOMContentLoaded', function(){
         //scene.enablePhysics(null, new BABYLON.AmmoJSPlugin());
 
         // Add Imposters
-        box.physicsImpostor = new BABYLON.PhysicsImpostor(box, BABYLON.PhysicsImpostor.BoxImpostor, { mass: 2, friction: 0.0, restitution: 0.3 }, scene);
+        ball.physicsImpostor = new BABYLON.PhysicsImpostor(ball, BABYLON.PhysicsImpostor.BoxImpostor, { mass: 2, friction: 0.0, restitution: 0.3 }, scene);
         ground.physicsImpostor = new BABYLON.PhysicsImpostor(ground, BABYLON.PhysicsImpostor.BoxImpostor, { mass: 0, friction: 0.0, restitution: 0.7 }, scene);
        
         //Impulse Settings
@@ -55,7 +88,7 @@ window.addEventListener('DOMContentLoaded', function(){
         var contactLocalRefPoint = BABYLON.Vector3.Zero();
 
         var Pulse = function() {
-            box.physicsImpostor.applyImpulse(impulseDirection.scale(impulseMagnitude), box.getAbsolutePosition().add(contactLocalRefPoint));
+            ball.physicsImpostor.applyImpulse(impulseDirection.scale(impulseMagnitude), ball.getAbsolutePosition().add(contactLocalRefPoint));
         }
         
         //GUI
@@ -85,7 +118,7 @@ window.addEventListener('DOMContentLoaded', function(){
         }
 
         var frictionBox = function(value) {
-            box.physicsImpostor.friction = value;
+            ball.physicsImpostor.friction = value;
         }
 
         var frictionGround = function(value) {
