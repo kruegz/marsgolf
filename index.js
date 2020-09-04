@@ -9,26 +9,28 @@ window.addEventListener('DOMContentLoaded', function(){
         var scene = new BABYLON.Scene(engine);
         scene.clearColor = BABYLON.Color3.Purple();
 
-        // var camera = new BABYLON.ArcRotateCamera("Camera", 3 * Math.PI / 2, Math.PI / 2, 50, BABYLON.Vector3.Zero(), scene);
+        var camera = new BABYLON.ArcRotateCamera("Camera", 3 * Math.PI / 2, Math.PI / 2, 50, BABYLON.Vector3.Zero(), scene);
         // var camera = new BABYLON.FollowCamera("camera", BABYLON.Vector3(10, 10, 10), scene);
+        // var camera = new BABYLON.UniversalCamera("UniversalCamera", new BABYLON.Vector3(0, 0, -10), scene);
 
         // This creates and initially positions a follow camera     
-        var camera = new BABYLON.FollowCamera("FollowCam", new BABYLON.Vector3(0, 10, 10), scene);
+        // var camera = new BABYLON.FollowCamera("FollowCam", new BABYLON.Vector3(0, 10, 10), scene);
         
-        //The goal distance of camera from target
-        camera.radius = 30;
+        // //The goal distance of camera from target
+        // camera.radius = 50;
         
-        // The goal height of camera above local origin (centre) of target
-        camera.heightOffset = 5;
+        // // The goal height of camera above local origin (centre) of target
+        // camera.heightOffset = 25;
         
-        // The goal rotation of camera around local origin (centre) of target in x y plane
-        camera.rotationOffset = 0;
+        // // The goal rotation of camera around local origin (centre) of target in x y plane
+        // camera.rotationOffset = 0;
         
-        //Acceleration of camera in moving from current to goal position
-        camera.cameraAcceleration = 0.005
+        // //Acceleration of camera in moving from current to goal position
+        // camera.cameraAcceleration = 0.005;
         
-        //The speed at which acceleration is halted 
-        camera.maxCameraSpeed = 10
+        // //The speed at which acceleration is halted 
+        // camera.maxCameraSpeed = 0.5;
+
         camera.attachControl(canvas, true);
 
         var light = new BABYLON.DirectionalLight("dir02", new BABYLON.Vector3(0.2, -1, 0), scene);
@@ -38,13 +40,17 @@ window.addEventListener('DOMContentLoaded', function(){
         var shadowGenerator = new BABYLON.ShadowGenerator(2048, light);
 
         // Box
-        // var ball = BABYLON.MeshBuilder.CreateBox("Box", {size:4}, scene);
         var ball = BABYLON.Mesh.CreateSphere('sphere1', 16, 1, scene);
-        ball.position = new BABYLON.Vector3(-2, 4, 0);
-        // var materialWood = new BABYLON.StandardMaterial("wood", scene);
-        // materialWood.diffuseTexture = new BABYLON.Texture("textures/crate.png", scene);
-        // materialWood.emissiveColor = new BABYLON.Color3(0.5, 0.5, 0.5);
-        // ball.material = materialWood;
+        ball.position = new BABYLON.Vector3(-20, 40, -100);
+
+        var ballTextureUrl = "ballTexture.jpg";
+        var ballMat = new BABYLON.StandardMaterial("ballMat", scene);
+        ballMat.diffuseTexture = new BABYLON.Texture(ballTextureUrl, scene);
+        ballMat.specularTexture = new BABYLON.Texture(ballTextureUrl, scene);
+        ballMat.emissiveTexture = new BABYLON.Texture(ballTextureUrl, scene);
+        ballMat.ambientTexture = new BABYLON.Texture(ballTextureUrl, scene);
+
+        ball.material = ballMat;
 
         camera.lockedTarget = ball; // target any mesh or object with a "position" Vector3
         console.log(camera.lockedTarget)
@@ -54,37 +60,40 @@ window.addEventListener('DOMContentLoaded', function(){
 
 
         // Ground (using a ball not a plane)
-        var ground = BABYLON.MeshBuilder.CreateBox("Ground", {width: 1000, height: 1, depth: 1000}, scene);
-        ground.position.y = -5.0;
+        var ground = BABYLON.Mesh.CreateGroundFromHeightMap("ground", "groundHeightmap.jpg", 2000, 2000, 500, 0, 20, scene, false, () => {
+            ground.physicsImpostor = new BABYLON.PhysicsImpostor(ground, BABYLON.PhysicsImpostor.HeightmapImpostor, { mass: 0 }, scene);
+        });
 
         var groundMat = new BABYLON.StandardMaterial("groundMat", scene);
-        groundMat.diffuseColor = new BABYLON.Color3(0.5, 0.5, 0.5);
-        groundMat.emissiveColor = new BABYLON.Color3(0.2, 0.2, 0.2);
-        groundMat.backFaceCulling = false;
-        // groundMat.diffuseTexture = new BABYLON.Texture("https://www.astrobio.net/wp-content/uploads/2018/09/Mars_Express_view_of_Cerberus_Fossae_highlight_mob.jpg", scene);
-        // groundMat.specularTexture = new BABYLON.Texture("https://www.astrobio.net/wp-content/uploads/2018/09/Mars_Express_view_of_Cerberus_Fossae_highlight_mob.jpg", scene);
-        // groundMat.emissiveTexture = new BABYLON.Texture("https://www.astrobio.net/wp-content/uploads/2018/09/Mars_Express_view_of_Cerberus_Fossae_highlight_mob.jpg", scene);
-        // groundMat.ambientTexture = new BABYLON.Texture("https://www.astrobio.net/wp-content/uploads/2018/09/Mars_Express_view_of_Cerberus_Fossae_highlight_mob.jpg", scene);
-        // groundMat.diffuseColor = new BABYLON.Color3(1, 0, 1);
-        // groundMat.specularColor = new BABYLON.Color3(0.5, 0.6, 0.87);
-        // groundMat.emissiveColor = new BABYLON.Color3(1, 1, 1);
-        // groundMat.ambientColor = new BABYLON.Color3(0.23, 0.98, 0.53);
+        var groundTextureUrl = "groundTexture.jpg";
+        // var groundTextureUrl = "https://www.astrobio.net/wp-content/uploads/2018/09/Mars_Express_view_of_Cerberus_Fossae_highlight_mob.jpg";
+
+        groundMat.diffuseTexture = new BABYLON.Texture(groundTextureUrl, scene);
+        groundMat.specularTexture = new BABYLON.Texture(groundTextureUrl, scene);
+        groundMat.emissiveTexture = new BABYLON.Texture(groundTextureUrl, scene);
+        groundMat.ambientTexture = new BABYLON.Texture(groundTextureUrl, scene);
 
         ground.material = groundMat;
         ground.receiveShadows = true;
 
+        var skybox = BABYLON.MeshBuilder.CreateBox("skyBox", {size:2000.0}, scene);
+        var skyboxMaterial = new BABYLON.StandardMaterial("skyBox", scene);
+        skyboxMaterial.backFaceCulling = false;
+        skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture("sunsetflat", scene);
+        skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
+        skyboxMaterial.diffuseColor = new BABYLON.Color3(0, 0, 0);
+        skyboxMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
+        skybox.material = skyboxMaterial;
+
         // Physics
         scene.enablePhysics(null, new BABYLON.CannonJSPlugin());
-        //scene.enablePhysics(null, new BABYLON.OimoJSPlugin());
-        //scene.enablePhysics(null, new BABYLON.AmmoJSPlugin());
 
         // Add Imposters
         ball.physicsImpostor = new BABYLON.PhysicsImpostor(ball, BABYLON.PhysicsImpostor.BoxImpostor, { mass: 2, friction: 0.0, restitution: 0.3 }, scene);
-        ground.physicsImpostor = new BABYLON.PhysicsImpostor(ground, BABYLON.PhysicsImpostor.BoxImpostor, { mass: 0, friction: 0.0, restitution: 0.7 }, scene);
-       
+
         //Impulse Settings
         var impulseDirection = new BABYLON.Vector3(0, 1, 0);
-        var impulseMagnitude = 5;
+        var impulseMagnitude = 50;
         var contactLocalRefPoint = BABYLON.Vector3.Zero();
 
         var Pulse = function() {
@@ -152,8 +161,8 @@ window.addEventListener('DOMContentLoaded', function(){
          
         advancedTexture.addControl(selectBox);
 
-        var impulseMGroup = new BABYLON.GUI.SliderGroup("Impulse Magnitude", "S");
-        impulseMGroup.addSlider("Value", magnitude, "units", 0, 100, 5, displayMValue);
+        var impulseMGroup = new BABYLON.GUI.SliderGroup("Strength", "S");
+        impulseMGroup.addSlider("Value", magnitude, "units", 0, 100, 50, displayMValue);
         
         var impulseDGroup = new BABYLON.GUI.SliderGroup("Impulse Direction", "S");
         impulseDGroup.addSlider("X", changeX, "units", -1, 1, 0, displayDValue);
@@ -191,8 +200,8 @@ window.addEventListener('DOMContentLoaded', function(){
         advancedTexture.addControl(selectFrictionBox);
 
         var frictionGroup = new BABYLON.GUI.SliderGroup("Friction Values", "S");
-        frictionGroup.addSlider("Box", frictionBox, "units", 0, 10, 0, displayFValue);
-        frictionGroup.addSlider("Ground", frictionGround, "units", 0, 10, 0, displayFValue);
+        frictionGroup.addSlider("Box", frictionBox, "units", 0, 10, 10, displayFValue);
+        frictionGroup.addSlider("Ground", frictionGround, "units", 0, 10, 10, displayFValue);
 
         selectFrictionBox.addGroup(frictionGroup);
 

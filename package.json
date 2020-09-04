@@ -4,7 +4,8 @@
   "description": "Play golf on mars",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "./node_modules/http-server/bin/http-server"
   },
   "repository": {
     "type": "git",
@@ -13,6 +14,7 @@
   "author": "Zach Krueger",
   "license": "ISC",
   "dependencies": {
-    "babylonjs": "^4.1.0"
+    "babylonjs": "^4.1.0",
+    "http-server": "^0.12.3"
   }
 }
