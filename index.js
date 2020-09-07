@@ -41,7 +41,7 @@ window.addEventListener('DOMContentLoaded', function(){
 
         // Box
         var ball = BABYLON.Mesh.CreateSphere('sphere1', 16, 1, scene);
-        ball.position = new BABYLON.Vector3(-20, 40, -100);
+        ball.position = new BABYLON.Vector3(-150, 40, -100);
 
         var ballTextureUrl = "ballTexture.jpg";
         var ballMat = new BABYLON.StandardMaterial("ballMat", scene);
@@ -94,6 +94,7 @@ window.addEventListener('DOMContentLoaded', function(){
         //Impulse Settings
         var impulseDirection = new BABYLON.Vector3(0, 1, 0);
         var impulseMagnitude = 50;
+        var rotation = new BABYLON.Vector3(0, 0, 0);
         var contactLocalRefPoint = BABYLON.Vector3.Zero();
 
         var Pulse = function() {
@@ -102,34 +103,41 @@ window.addEventListener('DOMContentLoaded', function(){
             impulseDirection.x = cameraDirection.x;
             impulseDirection.z = cameraDirection.z;
 
+            var translatedRotation = new BABYLON.Vector3(0, 0, 0);
+
+            // translatedRotation.x = rotation.x*cameraDirection.x + rotation.z*cameraDirection.z;
+            // translatedRotation.y = rotation.y;
+            // translatedRotation.z = -rotation.x*cameraDirection.z + rotation.y*cameraDirection.x;
+
+            translatedRotation.x = cameraDirection.x;
+            translatedRotation.y = 0;
+            translatedRotation.z = cameraDirection.z;
+
+            translatedRotation = translatedRotation.scale(rotation.x);
+
+            translatedRotation.y = rotation.y;
+
+            console.log("cameraDirection", cameraDirection);
+            console.log("rotation", rotation);
+            console.log("translatedRotation", translatedRotation);
+
             // Apply impulse
             ball.physicsImpostor.applyImpulse(impulseDirection.scale(impulseMagnitude), ball.getAbsolutePosition().add(contactLocalRefPoint));
+
+            // Apply rotation
+            setTimeout(() => {
+                ball.physicsImpostor.setAngularVelocity(translatedRotation);
+            }, 100);
         }
         
         //GUI
         
-        var changeX = function(value) {
-            impulseDirection.x = value;
-        }
-
-        var changeY = function(value) {
+        var changeLoft = function(value) {
             impulseDirection.y = value;
-        }
-        
-        var changeZ = function(value) {
-            impulseDirection.z = value;
         }
 
         var magnitude = function(value) {
             impulseMagnitude = value;
-        }
-
-        var contactX = function(value) {
-            contactLocalRefPoint.x = value;
-        }
-
-        var contactY = function(value) {
-            contactLocalRefPoint.y = value;
         }
 
         var frictionBox = function(value) {
@@ -140,8 +148,16 @@ window.addEventListener('DOMContentLoaded', function(){
             ground.physicsImpostor.friction = value;
         }
 
-        var contactZ = function(value) {
-            contactLocalRefPoint.z = value;
+        var spinX = function(value) {
+            rotation.x = value;
+        }
+
+        var spinY = function(value) {
+            rotation.y = value;
+        }
+
+        var spinZ = function(value) {
+            rotation.z = value;
         }
         
         var displayDValue = function(value) {
@@ -169,12 +185,12 @@ window.addEventListener('DOMContentLoaded', function(){
 
         var impulseMGroup = new BABYLON.GUI.SliderGroup("Control", "S");
         impulseMGroup.addSlider("Power", magnitude, "units", 0, 100, 50, displayMValue);
-        impulseMGroup.addSlider("Loft", changeY, "units", 0, 1, 1, displayDValue);
+        impulseMGroup.addSlider("Loft", changeLoft, "units", 0, 1, 1, displayDValue);
 
         var contactGroup = new BABYLON.GUI.SliderGroup("Contact Position", "S");
-        contactGroup.addSlider("X", contactX, "units", -2, 2, 0, displayDValue);
-        contactGroup.addSlider("Y", contactY, "units", -2, 2, 0, displayDValue);
-        contactGroup.addSlider("Z", contactZ, "units", -2, 2, 0, displayDValue); 
+        contactGroup.addSlider("SpinX", spinX, "units", -100, 100, 0, displayDValue); 
+        contactGroup.addSlider("SpinY", spinY, "units", -100, 100, 0, displayDValue); 
+        contactGroup.addSlider("SpinZ", spinZ, "units", -100, 100, 0, displayDValue); 
 
         selectBox.addGroup(impulseMGroup);
         selectBox.addGroup(contactGroup);
