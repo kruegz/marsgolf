@@ -106,7 +106,6 @@ window.addEventListener('DOMContentLoaded', function(){
             translatedRotation.z = -backspin * Math.sin(cameraAngleX);
 
             console.log("cameraDirection", cameraDirection);
-            console.log("rotation", rotation);
             console.log("translatedRotation", translatedRotation);
 
             // Apply impulse
