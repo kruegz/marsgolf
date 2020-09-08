@@ -1,3 +1,24 @@
+class Ball {
+    constructor(scene) {
+        this.scene = scene;
+        this.mesh = BABYLON.Mesh.CreateSphere('sphere1', 16, 1, this.scene);
+        this.mesh.position = new BABYLON.Vector3(-150, 40, -100);
+
+        var ballTextureUrl = "ballTexture.jpg";
+        this.material = new BABYLON.StandardMaterial("ballMat", this.scene);
+        this.material.diffuseTexture = new BABYLON.Texture(ballTextureUrl, this.scene);
+        this.material.specularTexture = new BABYLON.Texture(ballTextureUrl, this.scene);
+        this.material.emissiveTexture = new BABYLON.Texture(ballTextureUrl, this.scene);
+        this.material.ambientTexture = new BABYLON.Texture(ballTextureUrl, this.scene);
+
+        this.mesh.material = this.material;
+
+        // Physics impostor
+        this.mesh.physicsImpostor = new BABYLON.PhysicsImpostor(this.mesh, BABYLON.PhysicsImpostor.BoxImpostor, { mass: 2, friction: 5.0, restitution: 0.3 }, this.scene);
+
+    }
+}
+
 window.addEventListener('DOMContentLoaded', function(){
     // get the canvas DOM element
     var canvas = document.getElementById('renderCanvas');
@@ -9,28 +30,12 @@ window.addEventListener('DOMContentLoaded', function(){
         var scene = new BABYLON.Scene(engine);
         scene.clearColor = BABYLON.Color3.Purple();
 
+        
+        // Physics
+        scene.enablePhysics(null, new BABYLON.CannonJSPlugin());
+
+        // Camera
         var camera = new BABYLON.ArcRotateCamera("Camera", 3 * Math.PI / 2, Math.PI / 2, 50, BABYLON.Vector3.Zero(), scene);
-        // var camera = new BABYLON.FollowCamera("camera", BABYLON.Vector3(10, 10, 10), scene);
-        // var camera = new BABYLON.UniversalCamera("UniversalCamera", new BABYLON.Vector3(0, 0, -10), scene);
-
-        // This creates and initially positions a follow camera     
-        // var camera = new BABYLON.FollowCamera("FollowCam", new BABYLON.Vector3(0, 10, 10), scene);
-        
-        // //The goal distance of camera from target
-        // camera.radius = 50;
-        
-        // // The goal height of camera above local origin (centre) of target
-        // camera.heightOffset = 25;
-        
-        // // The goal rotation of camera around local origin (centre) of target in x y plane
-        // camera.rotationOffset = 0;
-        
-        // //Acceleration of camera in moving from current to goal position
-        // camera.cameraAcceleration = 0.005;
-        
-        // //The speed at which acceleration is halted 
-        // camera.maxCameraSpeed = 0.5;
-
         camera.attachControl(canvas, true);
 
         var light = new BABYLON.DirectionalLight("dir02", new BABYLON.Vector3(0.2, -1, 0), scene);
@@ -39,27 +44,16 @@ window.addEventListener('DOMContentLoaded', function(){
         // Shadows
         var shadowGenerator = new BABYLON.ShadowGenerator(2048, light);
 
-        // Box
-        var ball = BABYLON.Mesh.CreateSphere('sphere1', 16, 1, scene);
-        ball.position = new BABYLON.Vector3(-150, 40, -100);
+        // Ball
+        var ball = new Ball();
 
-        var ballTextureUrl = "ballTexture.jpg";
-        var ballMat = new BABYLON.StandardMaterial("ballMat", scene);
-        ballMat.diffuseTexture = new BABYLON.Texture(ballTextureUrl, scene);
-        ballMat.specularTexture = new BABYLON.Texture(ballTextureUrl, scene);
-        ballMat.emissiveTexture = new BABYLON.Texture(ballTextureUrl, scene);
-        ballMat.ambientTexture = new BABYLON.Texture(ballTextureUrl, scene);
-
-        ball.material = ballMat;
-
-        camera.lockedTarget = ball; // target any mesh or object with a "position" Vector3
-        console.log(camera.lockedTarget)
+        camera.lockedTarget = ball.mesh; // target any mesh or object with a "position" Vector3
         scene.activeCamera = camera;
 
-        shadowGenerator.addShadowCaster(ball);
+        shadowGenerator.addShadowCaster(ball.mesh);
 
 
-        // Ground (using a ball not a plane)
+        // Ground
         var ground = BABYLON.Mesh.CreateGroundFromHeightMap("ground", "groundHeightmap.jpg", 2000, 2000, 500, 0, 20, scene, false, () => {
             ground.physicsImpostor = new BABYLON.PhysicsImpostor(ground, BABYLON.PhysicsImpostor.HeightmapImpostor, { mass: 0, friction: 5.0 }, scene);
         });
@@ -85,11 +79,7 @@ window.addEventListener('DOMContentLoaded', function(){
         skyboxMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
         skybox.material = skyboxMaterial;
 
-        // Physics
-        scene.enablePhysics(null, new BABYLON.CannonJSPlugin());
 
-        // Add Imposters
-        ball.physicsImpostor = new BABYLON.PhysicsImpostor(ball, BABYLON.PhysicsImpostor.BoxImpostor, { mass: 2, friction: 5.0, restitution: 0.3 }, scene);
 
         //Impulse Settings
         var impulseDirection = new BABYLON.Vector3(0, 1, 0);
@@ -122,11 +112,11 @@ window.addEventListener('DOMContentLoaded', function(){
             console.log("translatedRotation", translatedRotation);
 
             // Apply impulse
-            ball.physicsImpostor.applyImpulse(impulseDirection.scale(impulseMagnitude), ball.getAbsolutePosition().add(contactLocalRefPoint));
+            ball.mesh.physicsImpostor.applyImpulse(impulseDirection.scale(impulseMagnitude), ball.mesh.getAbsolutePosition().add(contactLocalRefPoint));
 
             // Apply rotation
             setTimeout(() => {
-                ball.physicsImpostor.setAngularVelocity(translatedRotation);
+                ball.mesh.physicsImpostor.setAngularVelocity(translatedRotation);
             }, 100);
         }
         
