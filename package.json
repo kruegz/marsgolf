@@ -16,5 +16,12 @@
   "dependencies": {
     "babylonjs": "^4.1.0",
     "http-server": "^0.12.3"
+  },
+  "devDependencies": {
+    "@babel/plugin-transform-modules-commonjs": "^7.10.4",
+    "@babel/preset-env": "^7.11.5",
+    "@babylonjs/core": "^4.1.0",
+    "babel-jest": "^26.3.0",
+    "jest": "^26.4.2"
   }
 }

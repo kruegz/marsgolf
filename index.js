@@ -21,6 +21,33 @@ class Ball {
     }
 }
 
+function rotateVector(cameraDirection, backspin, sidespin) {
+    console.log("cameraDirection: ", cameraDirection);
+    var cameraAngleX = Math.atan(cameraDirection.x / cameraDirection.z);
+    console.log("cameraAngleX: ", cameraAngleX);
+
+    let signX = (cameraDirection.x >= 0) ? 1 : -1;
+    let signY = (cameraDirection.y >= 0) ? 1 : -1;
+
+    // var translatedRotation = new BABYLON.Vector3(0, 0, 0);
+    var translatedRotation = {x:0, y:0, z:0};
+
+    // translatedRotation.x = backspin*(cameraDirection.x * Math.cos(cameraAngleX) - cameraDirection.y * Math.sin(cameraAngleX));
+    translatedRotation.x = backspin*(cameraDirection.z);
+    translatedRotation.y = sidespin;
+    translatedRotation.z = backspin*(cameraDirection.x);
+
+    var scaler = 1;
+    translatedRotation.x *= scaler;
+    translatedRotation.y *= scaler;
+
+    console.log("translatedRotation", translatedRotation);
+
+    return translatedRotation;
+}
+
+module.exports = rotateVector;
+
 window.addEventListener('DOMContentLoaded', function(){
     // get the canvas DOM element
     var canvas = document.getElementById('renderCanvas');
@@ -93,20 +120,14 @@ window.addEventListener('DOMContentLoaded', function(){
         var Pulse = function() {
             // Aim towards camera direction
             var cameraDirection = camera.getFrontPosition(1).subtract(camera.position);
+            console.log("cameraDirection", cameraDirection);
+
             impulseDirection.x = cameraDirection.x;
             impulseDirection.z = cameraDirection.z;
 
-            var cameraAngleX = Math.atan(cameraDirection.x / cameraDirection.z);
-            console.log("cameraAngleX: ", cameraAngleX);
+            var translatedRotation = rotateVector(cameraDirection, backspin, sidespin);
 
-            var translatedRotation = new BABYLON.Vector3(0, 0, 0);
-
-            translatedRotation.x = backspin * Math.cos(cameraAngleX);
-            translatedRotation.y = sidespin;
-            translatedRotation.z = -backspin * Math.sin(cameraAngleX);
-
-            console.log("cameraDirection", cameraDirection);
-            console.log("translatedRotation", translatedRotation);
+            
 
             // Apply impulse
             ball.mesh.physicsImpostor.applyImpulse(impulseDirection.scale(impulseMagnitude), ball.mesh.getAbsolutePosition().add(contactLocalRefPoint));
@@ -116,6 +137,9 @@ window.addEventListener('DOMContentLoaded', function(){
                 ball.mesh.physicsImpostor.setAngularVelocity(translatedRotation);
             }, 100);
         }
+
+
+
         
         //GUI
         
